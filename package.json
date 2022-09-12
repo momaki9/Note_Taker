@@ -13,6 +13,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4"
+  },
   "bugs": {
     "url": "https://github.com/momaki9/Note_Taker/issues"
   },
