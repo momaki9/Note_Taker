@@ -1,11 +1,13 @@
-
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const app = express();
 const PORT = 3001;
-
+const util = require('util');
 const notes = require('./db/db.json')
+
+// Helper method for generating unique ids
+const uuid = require('./helpers/uuid');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -16,9 +18,18 @@ app.use(express.static('public'));
 app.get('/', (req, res) => res.send('Navigate to /notes'));
 
 //create new route path
-app.get('/api/notes', (req, res) =>
-    res.json(notes)
-);
+// app.get('/api/notes', (req, res) =>
+//     res.json(notes)
+// );
+
+// ---- CHANGED TO ----
+// Promise version of fs.readFile
+const readFromFile = util.promisify(fs.readFile);
+// --------------
+app.get('/api/notes', (req, res) => {
+  console.info(`${req.method} request received for tips`);
+  readFromFile('./db/db.json').then((data) => res.json(JSON.parse(data)));
+});
 
 //create new route path
 app.get('/notes/', (req, res) =>
@@ -45,6 +56,8 @@ app.post('/api/notes', (req, res) => {
     const newNote = {
       title,
       text,
+      id: uuid(),
+
     };
 
     // Obtain existing reviews
@@ -85,10 +98,14 @@ app.post('/api/notes', (req, res) => {
 //----------   END  --- POST REQUEST -----   END   ------------
 
 // Fallback route for when a user attempts to visit routes that don't exist
+// app.get('*', (req, res) =>
+//   res.send(
+//     `Page not found! Return to <a href="http://localhost:${PORT}/" >http://localhost:${PORT}/</a>`
+//   )
+// );
+
 app.get('*', (req, res) =>
-  res.send(
-    `Page not found! Return to <a href="http://localhost:${PORT}/" >http://localhost:${PORT}/</a>`
-  )
+  res.sendFile(path.join(__dirname, 'public/index.html'))
 );
 
 app.listen(PORT, () =>
