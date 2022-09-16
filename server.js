@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const util = require('util');
 const notes = require('./db/db.json')
 
@@ -96,6 +96,30 @@ app.post('/api/notes', (req, res) => {
 });
 
 //----------   END  --- POST REQUEST -----   END   ------------
+
+
+// ------------------- DELETE NOTE -----------
+
+app.delete('/api/notes/:id', (req, res) => {
+  let result = parseInt(req.params.id, 10);
+  let allNotes = [];
+
+  fs.readFile("./db/db.json", (err, data) => {
+    if(err) throw(err)
+    allNotes = JSON.parse(data);
+
+    let filteredNotes = allNotes.filter(note => note.id != result);
+    let filteredFile = JSON.stringify(filteredNotes);
+    fs.writeFile('./db/db.json', filteredFile, err => {
+      if(err) throw(err);
+      console.log(`Successfully updated the notes and we deleted ${req.params.id}`)
+    })
+
+    res.json(true);
+  })
+})
+
+// --------------------- END OF DELETE
 
 // Fallback route for when a user attempts to visit routes that don't exist
 // app.get('*', (req, res) =>
