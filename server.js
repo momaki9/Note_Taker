@@ -17,11 +17,6 @@ app.use(express.static('public'));
 //route path (i.e. home page)
 app.get('/', (req, res) => res.send('Navigate to /notes'));
 
-//create new route path
-// app.get('/api/notes', (req, res) =>
-//     res.json(notes)
-// );
-
 // ---- CHANGED TO ----
 // Promise version of fs.readFile
 const readFromFile = util.promisify(fs.readFile);
@@ -35,10 +30,6 @@ app.get('/api/notes', (req, res) => {
 app.get('/notes/', (req, res) =>
   res.sendFile(path.join(__dirname, 'public/notes.html'))
 );
-
-// app.get('/routes', (req, res) =>
-//   res.sendFile(path.join(__dirname, 'public/routes.html'))
-// );
 
 //------------- POST REQUEST -----------------
 
@@ -101,22 +92,18 @@ app.post('/api/notes', (req, res) => {
 // ------------------- DELETE NOTE -----------
 
 app.delete('/api/notes/:id', (req, res) => {
-  let result = parseInt(req.params.id, 10);
-  let allNotes = [];
-
-  fs.readFile("./db/db.json", (err, data) => {
-    if(err) throw(err)
-    allNotes = JSON.parse(data);
-
-    let filteredNotes = allNotes.filter(note => note.id != result);
-    let filteredFile = JSON.stringify(filteredNotes);
-    fs.writeFile('./db/db.json', filteredFile, err => {
-      if(err) throw(err);
-      console.log(`Successfully updated the notes and we deleted ${req.params.id}`)
-    })
-
-    res.json(true);
-  })
+  let result = fs.readFileSync("./db/db.json", "utf8");
+  const resultJSON = JSON.parse(result);
+  const updatedNotes = resultJSON.filter((note) => {
+    return note.id !== req.params.id;
+  });
+  fs.writeFile("./db/db.json", JSON.stringify(updatedNotes), (err, text) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+  });
+  res.json(updatedNotes);
 })
 
 // --------------------- END OF DELETE
